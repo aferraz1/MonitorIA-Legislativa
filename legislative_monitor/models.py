@@ -77,15 +77,6 @@ class Deputado(models.Model):
 
 class Proposicao(models.Model):
     """Modelo para representar uma proposição legislativa"""
-    TIPO_CHOICES = [
-        ('PL', 'Projeto de Lei'),
-        ('PLP', 'Projeto de Lei Complementar'),
-        ('PEC', 'Proposta de Emenda à Constituição'),
-        ('PDC', 'Projeto de Decreto Legislativo'),
-        ('PRC', 'Projeto de Resolução'),
-        ('MPV', 'Medida Provisória'),
-    ]
-    
     SITUACAO_CHOICES = [
         ('EM_TRAMITACAO', 'Em Tramitação'),
         ('APROVADA', 'Aprovada'),
@@ -96,11 +87,8 @@ class Proposicao(models.Model):
     
     id_proposicao = models.IntegerField(unique=True, help_text="ID da proposição na API da Câmara")
     
-    # Campo legado (manter por compatibilidade)
-    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES, blank=True)
-    
-    # Novo campo (recomendado) - Relacionamento com TipoProposicao
-    tipo_proposicao = models.ForeignKey(
+    # Tipo de proposição (relacionamento com TipoProposicao)
+    tipo = models.ForeignKey(
         'TipoProposicao',
         on_delete=models.PROTECT,
         related_name='proposicoes',
@@ -134,15 +122,8 @@ class Proposicao(models.Model):
         verbose_name_plural = "Proposições"
         ordering = ['-data_apresentacao']
     
-    def save(self, *args, **kwargs):
-        """Sincronizar campo tipo legado com tipo_proposicao"""
-        if self.tipo_proposicao and not self.tipo:
-            self.tipo = self.tipo_proposicao.sigla
-        super().save(*args, **kwargs)
-    
     def __str__(self):
-        # Usar tipo_proposicao se disponível, senão usar tipo legado
-        tipo_str = self.tipo_proposicao.sigla if self.tipo_proposicao else self.tipo
+        tipo_str = self.tipo.sigla if self.tipo else ''
         return f"{tipo_str} {self.numero}/{self.ano}"
 
 

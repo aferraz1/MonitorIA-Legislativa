@@ -31,7 +31,7 @@ def listar_deputados(request):
 def detalhe_deputado(request, id_deputado):
     """Exibe detalhes de um deputado"""
     deputado = get_object_or_404(Deputado, id_deputado=id_deputado)
-    proposicoes = deputado.proposicoes.select_related('tipo_proposicao').all()[:10]
+    proposicoes = deputado.proposicoes.select_related('tipo').all()[:10]
     discursos = deputado.discursos.all()[:10]
     
     context = {
@@ -44,7 +44,7 @@ def detalhe_deputado(request, id_deputado):
 
 def listar_proposicoes(request):
     """Lista todas as proposições"""
-    proposicoes = Proposicao.objects.select_related('tipo_proposicao', 'autor').all()
+    proposicoes = Proposicao.objects.select_related('tipo', 'autor').all()
     
     # Filtros
     tipo_cod = request.GET.get('tipo')  # Agora usa código do TipoProposicao
@@ -54,9 +54,9 @@ def listar_proposicoes(request):
     busca = request.GET.get('q')  # Busca na ementa
     
     if tipo_cod:
-        proposicoes = proposicoes.filter(tipo_proposicao__cod=tipo_cod)
+        proposicoes = proposicoes.filter(tipo__cod=tipo_cod)
     if tipo_sigla:
-        proposicoes = proposicoes.filter(tipo_proposicao__sigla=tipo_sigla)
+        proposicoes = proposicoes.filter(tipo__sigla=tipo_sigla)
     if situacao:
         proposicoes = proposicoes.filter(situacao=situacao)
     if ano:
@@ -76,7 +76,7 @@ def listar_proposicoes(request):
     context = {
         'proposicoes': proposicoes_page,
         'tipos_disponiveis': tipos_disponiveis,
-        'tipos': Proposicao.TIPO_CHOICES,  # Manter para compatibilidade
+        # 'tipos': Proposicao.TIPO_CHOICES,  # Removido - usar tipos_disponiveis
         'situacoes': Proposicao.SITUACAO_CHOICES,
         'anos_disponiveis': Proposicao.objects.values_list('ano', flat=True).distinct().order_by('-ano')[:10],
     }
@@ -86,7 +86,7 @@ def listar_proposicoes(request):
 def detalhe_proposicao(request, id_proposicao):
     """Exibe detalhes de uma proposição"""
     proposicao = get_object_or_404(
-        Proposicao.objects.select_related('tipo_proposicao', 'autor'),
+        Proposicao.objects.select_related('tipo', 'autor'),
         id_proposicao=id_proposicao
     )
     votacoes = proposicao.votacoes.all()
@@ -123,3 +123,80 @@ def detalhe_votacao(request, id_votacao):
     }
     return render(request, 'legislative_monitor/votacao_detail.html', context)
 
+
+# Views para TipoProposicao
+from django.views.generic import ListView, DetailView
+from django.db.models import Count, Q
+
+
+class TipoProposicaoListView(ListView):
+    """View para listar todos os tipos de proposição"""
+    model = TipoProposicao
+    template_name = 'legislative_monitor/tipos_proposicao_list.html'
+    context_object_name = 'tipos'
+    paginate_by = 50
+    
+    def get_queryset(self):
+        queryset = TipoProposicao.objects.all()
+        
+        # Filtro por sigla
+        sigla = self.request.GET.get('sigla')
+        if sigla:
+            queryset = queryset.filter(sigla__icontains=sigla)
+        
+        # Filtro por nome
+        nome = self.request.GET.get('nome')
+        if nome:
+            queryset = queryset.filter(nome__icontains=nome)
+        
+        # Busca geral
+        busca = self.request.GET.get('q')
+        if busca:
+            queryset = queryset.filter(
+                Q(sigla__icontains=busca) |
+                Q(nome__icontains=busca) |
+                Q(descricao__icontains=busca)
+            )
+        
+        return queryset
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Estatísticas
+        context['total_tipos'] = TipoProposicao.objects.count()
+        context['tipos_com_descricao'] = TipoProposicao.objects.exclude(descricao='').count()
+        context['tipos_sem_descricao'] = TipoProposicao.objects.filter(descricao='').count()
+        
+        # Top siglas
+        context['top_siglas'] = TipoProposicao.objects.values('sigla').annotate(
+            total=Count('id')
+        ).order_by('-total')[:10]
+        
+        # Parâmetros de busca
+        context['sigla_filter'] = self.request.GET.get('sigla', '')
+        context['nome_filter'] = self.request.GET.get('nome', '')
+        context['search_query'] = self.request.GET.get('q', '')
+        
+        return context
+
+
+class TipoProposicaoDetailView(DetailView):
+    """View para exibir detalhes de um tipo de proposição"""
+    model = TipoProposicao
+    template_name = 'legislative_monitor/tipo_proposicao_detail.html'
+    context_object_name = 'tipo'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Buscar outros tipos com a mesma sigla
+        context['tipos_mesma_sigla'] = TipoProposicao.objects.filter(
+            sigla=self.object.sigla
+        ).exclude(id=self.object.id)
+        
+        # Proposições deste tipo (se houver relacionamento)
+        # context['proposicoes'] = self.object.proposicoes.all()[:10]
+        # context['total_proposicoes'] = self.object.proposicoes.count()
+        
+        return context
