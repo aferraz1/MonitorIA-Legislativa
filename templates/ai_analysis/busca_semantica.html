@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Busca Semântica - MonitorIA Legislativa{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="text-center mb-4">Busca Semântica com IA</h1>
+            <p class="text-center text-muted mb-5">Utilize inteligência artificial para encontrar proposições relevantes</p>
+            
+            <!-- Search Form -->
+            <div class="card shadow-lg mb-5">
+                <div class="card-body p-4">
+                    <form method="get" action="{% url 'ai_analysis:busca_semantica' %}">
+                        <div class="input-group input-group-lg">
+                            <input type="text" 
+                                   name="q" 
+                                   class="form-control" 
+                                   placeholder="Digite sua busca..." 
+                                   value="{{ query }}"
+                                   required>
+                            <button class="btn btn-primary" type="submit">
+                                <i class="bi bi-search"></i> Buscar
+                            </button>
+                        </div>
+                        <small class="form-text text-muted mt-2 d-block">
+                            Exemplo: "educação básica", "meio ambiente", "reforma tributária"
+                        </small>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Results -->
+            {% if query %}
+            <div class="mb-4">
+                <h4>Resultados para: "{{ query }}"</h4>
+                <p class="text-muted">{{ resultados|length }} resultado(s) encontrado(s)</p>
+            </div>
+            
+            {% if resultados %}
+            <div class="row">
+                {% for proposicao in resultados %}
+                <div class="col-12 mb-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="{% url 'legislative_monitor:proposicao_detail' proposicao.id_proposicao %}" class="text-decoration-none">
+                                    {{ proposicao.tipo }} {{ proposicao.numero }}/{{ proposicao.ano }}
+                                </a>
+                            </h5>
+                            <p class="card-text">{{ proposicao.ementa }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar"></i> {{ proposicao.data_apresentacao|date:"d/m/Y" }}
+                                    {% if proposicao.autor %}
+                                    | <i class="bi bi-person"></i> {{ proposicao.autor.nome }}
+                                    {% endif %}
+                                </small>
+                                <span class="badge bg-{{ proposicao.situacao|lower }}">
+                                    {{ proposicao.get_situacao_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Nenhum resultado encontrado para sua busca.
+            </div>
+            {% endif %}
+            {% endif %}
+            
+            <!-- How it works -->
+            <div class="card bg-light mt-5">
+                <div class="card-body">
+                    <h5><i class="bi bi-lightbulb"></i> Como funciona a busca semântica?</h5>
+                    <p class="mb-0">
+                        Nossa busca utiliza inteligência artificial para entender o contexto e significado da sua consulta,
+                        não apenas palavras-chave. Isso permite encontrar proposições relevantes mesmo quando os termos
+                        exatos não aparecem no texto.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

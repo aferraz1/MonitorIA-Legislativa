@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ deputado.nome }} - MonitorIA Legislativa{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Deputy Header -->
+    <div class="card mb-4 shadow">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-3 text-center">
+                    {% if deputado.url_foto %}
+                    <img src="{{ deputado.url_foto }}" alt="{{ deputado.nome }}" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 150px; height: 150px;">
+                        <i class="bi bi-person" style="font-size: 5rem;"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-9">
+                    <h1>{{ deputado.nome }}</h1>
+                    <p class="lead">
+                        <span class="badge bg-primary fs-6">{{ deputado.sigla_partido }}</span>
+                        <span class="badge bg-secondary fs-6">{{ deputado.uf_representacao }}</span>
+                    </p>
+                    <p><strong>Nome Civil:</strong> {{ deputado.nome_civil|default:"Não informado" }}</p>
+                    <p><strong>Situação:</strong> {{ deputado.situacao|default:"Ativo" }}</p>
+                    {% if deputado.email %}
+                    <p><i class="bi bi-envelope"></i> <a href="mailto:{{ deputado.email }}">{{ deputado.email }}</a></p>
+                    {% endif %}
+                    {% if deputado.url_website %}
+                    <p><i class="bi bi-link"></i> <a href="{{ deputado.url_website }}" target="_blank">Website</a></p>
+                    {% endif %}
+                    <a href="{% url 'parliamentary_dashboard:perfil_parlamentar' deputado.id_deputado %}" class="btn btn-primary">
+                        <i class="bi bi-bar-chart"></i> Ver Dashboard Completo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Propositions -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-file-text"></i> Proposições Apresentadas</h5>
+        </div>
+        <div class="card-body">
+            {% if proposicoes %}
+            <div class="list-group">
+                {% for proposicao in proposicoes %}
+                <a href="{% url 'legislative_monitor:proposicao_detail' proposicao.id_proposicao %}" class="list-group-item list-group-item-action">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">{{ proposicao.tipo }} {{ proposicao.numero }}/{{ proposicao.ano }}</h6>
+                            <p class="mb-1 text-muted small">{{ proposicao.ementa|truncatewords:20 }}</p>
+                        </div>
+                        <span class="badge bg-{{ proposicao.situacao|lower }}">{{ proposicao.get_situacao_display }}</span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted">Nenhuma proposição registrada.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Recent Speeches -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="bi bi-mic"></i> Discursos Recentes</h5>
+        </div>
+        <div class="card-body">
+            {% if discursos %}
+            <div class="list-group">
+                {% for discurso in discursos %}
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">{{ discurso.tipo_discurso }}</h6>
+                            <p class="mb-1 text-muted small">{{ discurso.sumario|default:discurso.transcricao|truncatewords:30 }}</p>
+                            <small class="text-muted">
+                                <i class="bi bi-calendar"></i> {{ discurso.data|date:"d/m/Y H:i" }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted">Nenhum discurso registrado.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

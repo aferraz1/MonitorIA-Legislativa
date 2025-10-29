@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Parlamentar - MonitorIA Legislativa{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Dashboard Parlamentar</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Análise Parlamentar com IA</h5>
+                    <p class="card-text">
+                        Acompanhe a atuação dos parlamentares com análises detalhadas de votações,
+                        proposições, discursos e muito mais.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Deputy Cards -->
+    <h3 class="mb-3">Deputados em Destaque</h3>
+    <div class="row">
+        {% for deputado in deputados_destaque %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    {% if deputado.url_foto %}
+                    <img src="{{ deputado.url_foto }}" alt="{{ deputado.nome }}" class="rounded-circle mb-3" style="width: 80px; height: 80px; object-fit: cover;">
+                    {% else %}
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-person" style="font-size: 2rem;"></i>
+                    </div>
+                    {% endif %}
+                    <h5 class="card-title">{{ deputado.nome }}</h5>
+                    <p class="card-text">
+                        <span class="badge bg-primary">{{ deputado.sigla_partido }}</span>
+                        <span class="badge bg-secondary">{{ deputado.uf_representacao }}</span>
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'parliamentary_dashboard:perfil_parlamentar' deputado.id_deputado %}" class="btn btn-outline-primary btn-sm w-100">
+                        Ver Dashboard <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Nenhum deputado cadastrado ainda.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Quick Stats -->
+    <div class="row mt-5">
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body text-center">
+                    <i class="bi bi-people" style="font-size: 3rem;"></i>
+                    <h3 class="mt-2">513</h3>
+                    <p>Deputados</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-success">
+                <div class="card-body text-center">
+                    <i class="bi bi-file-text" style="font-size: 3rem;"></i>
+                    <h3 class="mt-2">-</h3>
+                    <p>Proposições</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-info">
+                <div class="card-body text-center">
+                    <i class="bi bi-hand-thumbs-up" style="font-size: 3rem;"></i>
+                    <h3 class="mt-2">-</h3>
+                    <p>Votações</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body text-center">
+                    <i class="bi bi-mic" style="font-size: 3rem;"></i>
+                    <h3 class="mt-2">-</h3>
+                    <p>Discursos</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
