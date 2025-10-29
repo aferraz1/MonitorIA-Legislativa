@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Deputado, Proposicao, Votacao, VotoDeputado, Discurso, Regiao, Estado, Municipio, TipoProposicao, Sexo
+from .models import Deputado, Proposicao, Votacao, VotoDeputado, Discurso, Regiao, Estado, Municipio, TipoProposicao, Sexo, Partido
 
 
 @admin.register(Deputado)
@@ -76,6 +76,32 @@ class TipoProposicaoAdmin(admin.ModelAdmin):
     search_fields = ['cod', 'sigla', 'nome', 'descricao']
     ordering = ['sigla', 'nome']
     readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(Partido)
+class PartidoAdmin(admin.ModelAdmin):
+    list_display = ['sigla', 'nome', 'status_situacao', 'status_total_membros', 'created_at']
+    list_filter = ['status_situacao']
+    search_fields = ['sigla', 'nome', 'id_partido']
+    ordering = ['sigla']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Informações Básicas', {
+            'fields': ('id_partido', 'sigla', 'nome', 'uri')
+        }),
+        ('Status Atual', {
+            'fields': ('status_data', 'status_situacao', 'status_total_posse', 'status_total_membros', 'status_id_legislatura')
+        }),
+        ('Dados Adicionais', {
+            'fields': ('numero_eleitoral', 'url_logo', 'url_website', 'url_facebook'),
+            'classes': ('collapse',)
+        }),
+        ('Metadados', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
 
 
 @admin.register(Sexo)

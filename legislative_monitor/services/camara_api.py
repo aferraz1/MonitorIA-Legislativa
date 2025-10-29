@@ -82,3 +82,15 @@ class CamaraAPIService:
     def listar_tipos_proposicao(self):
         """Lista todos os tipos de proposição disponíveis"""
         return self._fazer_requisicao('referencias/proposicoes/siglaTipo')
+
+    
+    def listar_partidos(self, **kwargs):
+        """
+        Lista partidos políticos
+        Parâmetros: itens, pagina, etc.
+        """
+        return self._fazer_requisicao('partidos', params=kwargs)
+    
+    def obter_partido(self, id_partido):
+        """Obtém informações detalhadas de um partido"""
+        return self._fazer_requisicao(f'partidos/{id_partido}')

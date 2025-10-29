@@ -42,7 +42,15 @@ class Deputado(models.Model):
     )
     
     # Dados políticos
-    sigla_partido = models.CharField(max_length=20)
+    # Partido (relacionamento com modelo Partido)
+    sigla_partido = models.ForeignKey(
+        'Partido',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='deputados',
+        help_text="Partido político do deputado"
+    )
     
     # UF de representação (relacionamento com modelo Estado)
     uf_representacao = models.ForeignKey(
@@ -71,8 +79,9 @@ class Deputado(models.Model):
         ordering = ['nome']
     
     def __str__(self):
+        partido = self.sigla_partido.sigla if self.sigla_partido else ''
         uf = self.uf_representacao.sigla if self.uf_representacao else ''
-        return f"{self.nome} - {self.sigla_partido}/{uf}"
+        return f"{self.nome} - {partido}/{uf}"
 
 
 class Proposicao(models.Model):
@@ -467,3 +476,90 @@ Responda apenas com a definição, sem introduções ou explicações adicionais
         # Atualizar nome anterior para próxima comparação
         if self.nome != self._nome_anterior:
             Sexo.objects.filter(pk=self.pk).update(_nome_anterior=self.nome)
+
+
+
+class Partido(models.Model):
+    """Modelo para representar um partido político (dados da API da Câmara)"""
+    id_partido = models.IntegerField(
+        unique=True,
+        help_text="ID do partido na API da Câmara"
+    )
+    sigla = models.CharField(
+        max_length=20,
+        unique=True,
+        db_index=True,
+        help_text="Sigla do partido"
+    )
+    nome = models.CharField(
+        max_length=255,
+        help_text="Nome completo do partido"
+    )
+    uri = models.URLField(
+        blank=True,
+        help_text="URI do partido na API da Câmara"
+    )
+    
+    # Dados de status (última atualização)
+    status_data = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Data da última atualização do status"
+    )
+    status_situacao = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Situação do partido (Ativo, Inativo, etc.)"
+    )
+    status_total_posse = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Total de deputados que tomaram posse pelo partido"
+    )
+    status_total_membros = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Total de membros atuais do partido"
+    )
+    status_id_legislatura = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="ID da legislatura do status"
+    )
+    
+    # Dados adicionais
+    numero_eleitoral = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Número eleitoral do partido"
+    )
+    url_logo = models.URLField(
+        blank=True,
+        help_text="URL do logo do partido"
+    )
+    url_website = models.URLField(
+        null=True,
+        blank=True,
+        help_text="URL do website oficial do partido"
+    )
+    url_facebook = models.URLField(
+        null=True,
+        blank=True,
+        help_text="URL da página do Facebook do partido"
+    )
+    
+    # Metadados
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Partido"
+        verbose_name_plural = "Partidos"
+        ordering = ['sigla']
+        indexes = [
+            models.Index(fields=['sigla']),
+            models.Index(fields=['id_partido']),
+        ]
+    
+    def __str__(self):
+        return f"{self.sigla} - {self.nome}"
