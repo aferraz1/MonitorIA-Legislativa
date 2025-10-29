@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Deputado, Proposicao, Votacao, VotoDeputado, Discurso, Regiao, Estado, Municipio, TipoProposicao
+from .models import Deputado, Proposicao, Votacao, VotoDeputado, Discurso, Regiao, Estado, Municipio, TipoProposicao, Sexo
 
 
 @admin.register(Deputado)
@@ -76,3 +76,25 @@ class TipoProposicaoAdmin(admin.ModelAdmin):
     search_fields = ['cod', 'sigla', 'nome', 'descricao']
     ordering = ['sigla', 'nome']
     readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(Sexo)
+class SexoAdmin(admin.ModelAdmin):
+    list_display = ['sigla', 'nome', 'slug', 'created_at']
+    search_fields = ['sigla', 'nome', 'descricao']
+    ordering = ['sigla']
+    readonly_fields = ['slug', '_nome_anterior', 'created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Informações Básicas', {
+            'fields': ('sigla', 'nome')
+        }),
+        ('Descrição (Gerada por IA)', {
+            'fields': ('descricao',),
+            'description': 'A descrição é gerada automaticamente por IA quando o nome é criado ou alterado significativamente.'
+        }),
+        ('Metadados', {
+            'fields': ('slug', '_nome_anterior', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
