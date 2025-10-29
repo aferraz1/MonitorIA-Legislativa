@@ -57,7 +57,20 @@ class Proposicao(models.Model):
     ]
     
     id_proposicao = models.IntegerField(unique=True, help_text="ID da proposição na API da Câmara")
-    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
+    
+    # Campo legado (manter por compatibilidade)
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES, blank=True)
+    
+    # Novo campo (recomendado) - Relacionamento com TipoProposicao
+    tipo_proposicao = models.ForeignKey(
+        'TipoProposicao',
+        on_delete=models.PROTECT,
+        related_name='proposicoes',
+        null=True,
+        blank=True,
+        help_text='Tipo de proposição conforme API da Câmara'
+    )
+    
     numero = models.IntegerField()
     ano = models.IntegerField()
     ementa = models.TextField()
@@ -83,8 +96,16 @@ class Proposicao(models.Model):
         verbose_name_plural = "Proposições"
         ordering = ['-data_apresentacao']
     
+    def save(self, *args, **kwargs):
+        """Sincronizar campo tipo legado com tipo_proposicao"""
+        if self.tipo_proposicao and not self.tipo:
+            self.tipo = self.tipo_proposicao.sigla
+        super().save(*args, **kwargs)
+    
     def __str__(self):
-        return f"{self.tipo} {self.numero}/{self.ano}"
+        # Usar tipo_proposicao se disponível, senão usar tipo legado
+        tipo_str = self.tipo_proposicao.sigla if self.tipo_proposicao else self.tipo
+        return f"{tipo_str} {self.numero}/{self.ano}"
 
 
 class Votacao(models.Model):

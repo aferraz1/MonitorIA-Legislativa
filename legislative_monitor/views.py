@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
-from .models import Deputado, Proposicao, Votacao, Discurso
+from .models import Deputado, Proposicao, Votacao, Discurso, TipoProposicao
 
 
 def listar_deputados(request):
@@ -31,7 +31,7 @@ def listar_deputados(request):
 def detalhe_deputado(request, id_deputado):
     """Exibe detalhes de um deputado"""
     deputado = get_object_or_404(Deputado, id_deputado=id_deputado)
-    proposicoes = deputado.proposicoes.all()[:10]
+    proposicoes = deputado.proposicoes.select_related('tipo_proposicao').all()[:10]
     discursos = deputado.discursos.all()[:10]
     
     context = {
@@ -44,35 +44,51 @@ def detalhe_deputado(request, id_deputado):
 
 def listar_proposicoes(request):
     """Lista todas as proposições"""
-    proposicoes = Proposicao.objects.all()
+    proposicoes = Proposicao.objects.select_related('tipo_proposicao', 'autor').all()
     
     # Filtros
-    tipo = request.GET.get('tipo')
+    tipo_cod = request.GET.get('tipo')  # Agora usa código do TipoProposicao
+    tipo_sigla = request.GET.get('tipo_sigla')  # Filtro por sigla
     situacao = request.GET.get('situacao')
     ano = request.GET.get('ano')
+    busca = request.GET.get('q')  # Busca na ementa
     
-    if tipo:
-        proposicoes = proposicoes.filter(tipo=tipo)
+    if tipo_cod:
+        proposicoes = proposicoes.filter(tipo_proposicao__cod=tipo_cod)
+    if tipo_sigla:
+        proposicoes = proposicoes.filter(tipo_proposicao__sigla=tipo_sigla)
     if situacao:
         proposicoes = proposicoes.filter(situacao=situacao)
     if ano:
         proposicoes = proposicoes.filter(ano=ano)
+    if busca:
+        proposicoes = proposicoes.filter(ementa__icontains=busca)
     
     paginator = Paginator(proposicoes, 20)
     page = request.GET.get('page')
     proposicoes_page = paginator.get_page(page)
     
+    # Buscar tipos disponíveis (siglas mais comuns)
+    tipos_disponiveis = TipoProposicao.objects.filter(
+        sigla__in=['PL', 'PEC', 'PLP', 'PDC', 'PRC', 'MPV']
+    ).order_by('sigla')
+    
     context = {
         'proposicoes': proposicoes_page,
-        'tipos': Proposicao.TIPO_CHOICES,
+        'tipos_disponiveis': tipos_disponiveis,
+        'tipos': Proposicao.TIPO_CHOICES,  # Manter para compatibilidade
         'situacoes': Proposicao.SITUACAO_CHOICES,
+        'anos_disponiveis': Proposicao.objects.values_list('ano', flat=True).distinct().order_by('-ano')[:10],
     }
     return render(request, 'legislative_monitor/proposicoes_list.html', context)
 
 
 def detalhe_proposicao(request, id_proposicao):
     """Exibe detalhes de uma proposição"""
-    proposicao = get_object_or_404(Proposicao, id_proposicao=id_proposicao)
+    proposicao = get_object_or_404(
+        Proposicao.objects.select_related('tipo_proposicao', 'autor'),
+        id_proposicao=id_proposicao
+    )
     votacoes = proposicao.votacoes.all()
     
     context = {
