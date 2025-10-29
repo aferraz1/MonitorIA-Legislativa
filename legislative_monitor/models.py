@@ -9,11 +9,8 @@ class Deputado(models.Model):
     nome_civil = models.CharField(max_length=255, blank=True)
     cpf = models.CharField(max_length=14, blank=True)
     
-    # Campo legado de sexo (manter por compatibilidade)
-    sexo = models.CharField(max_length=1, blank=True, help_text="Campo legado - usar sexo_obj")
-    
-    # Novo campo de sexo (relacionamento com modelo Sexo)
-    sexo_obj = models.ForeignKey(
+    # Sexo (relacionamento com modelo Sexo)
+    sexo = models.ForeignKey(
         'Sexo',
         on_delete=models.SET_NULL,
         null=True,
@@ -24,11 +21,8 @@ class Deputado(models.Model):
     
     data_nascimento = models.DateField(null=True, blank=True)
     
-    # Campo legado de município (manter por compatibilidade)
-    municipio_nascimento = models.CharField(max_length=255, blank=True, help_text="Campo legado - usar municipio_nascimento_obj")
-    
-    # Novo campo de município (relacionamento com modelo Municipio)
-    municipio_nascimento_obj = models.ForeignKey(
+    # Município de nascimento (relacionamento com modelo Municipio)
+    municipio_nascimento = models.ForeignKey(
         'Municipio',
         on_delete=models.SET_NULL,
         null=True,
@@ -37,11 +31,8 @@ class Deputado(models.Model):
         help_text="Município de nascimento do deputado"
     )
     
-    # Campo legado de UF (manter por compatibilidade)
-    uf_nascimento = models.CharField(max_length=2, blank=True, help_text="Campo legado - usar uf_nascimento_obj")
-    
-    # Novo campo de UF de nascimento (relacionamento com modelo Estado)
-    uf_nascimento_obj = models.ForeignKey(
+    # UF de nascimento (relacionamento com modelo Estado)
+    uf_nascimento = models.ForeignKey(
         'Estado',
         on_delete=models.SET_NULL,
         null=True,
@@ -53,11 +44,8 @@ class Deputado(models.Model):
     # Dados políticos
     sigla_partido = models.CharField(max_length=20)
     
-    # Campo legado de UF de representação (manter por compatibilidade)
-    uf_representacao = models.CharField(max_length=2, help_text="Campo legado - usar uf_representacao_obj")
-    
-    # Novo campo de UF de representação (relacionamento com modelo Estado)
-    uf_representacao_obj = models.ForeignKey(
+    # UF de representação (relacionamento com modelo Estado)
+    uf_representacao = models.ForeignKey(
         'Estado',
         on_delete=models.PROTECT,
         null=True,
@@ -82,29 +70,8 @@ class Deputado(models.Model):
         verbose_name_plural = "Deputados"
         ordering = ['nome']
     
-    def save(self, *args, **kwargs):
-        """Sincronizar campos legados com novos relacionamentos"""
-        # Sincronizar sexo
-        if self.sexo_obj and not self.sexo:
-            self.sexo = self.sexo_obj.sigla
-        
-        # Sincronizar UF de nascimento
-        if self.uf_nascimento_obj and not self.uf_nascimento:
-            self.uf_nascimento = self.uf_nascimento_obj.sigla
-        
-        # Sincronizar UF de representação
-        if self.uf_representacao_obj and not self.uf_representacao:
-            self.uf_representacao = self.uf_representacao_obj.sigla
-        
-        # Sincronizar município de nascimento
-        if self.municipio_nascimento_obj and not self.municipio_nascimento:
-            self.municipio_nascimento = self.municipio_nascimento_obj.nome
-        
-        super().save(*args, **kwargs)
-    
     def __str__(self):
-        # Usar uf_representacao_obj se disponível, senão usar campo legado
-        uf = self.uf_representacao_obj.sigla if self.uf_representacao_obj else self.uf_representacao
+        uf = self.uf_representacao.sigla if self.uf_representacao else ''
         return f"{self.nome} - {self.sigla_partido}/{uf}"
 
 
