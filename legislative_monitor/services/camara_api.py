@@ -78,3 +78,7 @@ class CamaraAPIService:
     def listar_orgaos(self, **kwargs):
         """Lista órgãos da Câmara (comissões, etc.)"""
         return self._fazer_requisicao('orgaos', params=kwargs)
+    
+    def listar_tipos_proposicao(self):
+        """Lista todos os tipos de proposição disponíveis"""
+        return self._fazer_requisicao('referencias/proposicoes/siglaTipo')

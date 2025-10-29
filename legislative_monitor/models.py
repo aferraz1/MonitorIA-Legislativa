@@ -234,3 +234,26 @@ class Municipio(models.Model):
         capital_marker = " (Capital)" if self.is_capital else ""
         return f"{self.nome}/{self.estado.sigla}{capital_marker}"
 
+
+class TipoProposicao(models.Model):
+    """Modelo para representar um tipo de proposição legislativa (dados da API da Câmara)"""
+    cod = models.CharField(max_length=10, unique=True, help_text="Código do tipo de proposição na API da Câmara")
+    sigla = models.CharField(max_length=20, db_index=True, help_text="Sigla do tipo de proposição")
+    nome = models.CharField(max_length=255, help_text="Nome completo do tipo de proposição")
+    descricao = models.TextField(blank=True, help_text="Descrição detalhada do tipo de proposição")
+    
+    # Metadados
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Tipo de Proposição"
+        verbose_name_plural = "Tipos de Proposição"
+        ordering = ['sigla', 'nome']
+        indexes = [
+            models.Index(fields=['sigla']),
+            models.Index(fields=['cod']),
+        ]
+    
+    def __str__(self):
+        return f"{self.sigla} - {self.nome}"

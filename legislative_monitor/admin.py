@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Deputado, Proposicao, Votacao, VotoDeputado, Discurso, Regiao, Estado, Municipio
+from .models import Deputado, Proposicao, Votacao, VotoDeputado, Discurso, Regiao, Estado, Municipio, TipoProposicao
 
 
 @admin.register(Deputado)
@@ -67,3 +67,12 @@ class MunicipioAdmin(admin.ModelAdmin):
     search_fields = ['nome']
     ordering = ['nome']
 
+
+
+@admin.register(TipoProposicao)
+class TipoProposicaoAdmin(admin.ModelAdmin):
+    list_display = ['cod', 'sigla', 'nome', 'created_at']
+    list_filter = ['sigla']
+    search_fields = ['cod', 'sigla', 'nome', 'descricao']
+    ordering = ['sigla', 'nome']
+    readonly_fields = ['created_at', 'updated_at']
