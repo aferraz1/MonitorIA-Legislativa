@@ -229,6 +229,67 @@ proposicoes = api.listar_proposicoes(ano=2024)
 votacao = api.obter_votacao(id_votacao)
 ```
 
+## Integração com API do IBGE (Localidades)
+
+O sistema inclui modelos e integração com a API de Localidades do IBGE para gerenciar dados geográficos brasileiros:
+
+### Modelos de Localidades
+
+- **Regiao**: Representa as 5 regiões brasileiras (Norte, Nordeste, Centro-Oeste, Sudeste, Sul)
+- **Estado**: Representa os 26 estados e o Distrito Federal
+- **Municipio**: Representa os municípios brasileiros, com indicador de capital
+
+### Sincronização de Dados do IBGE
+
+Para sincronizar os dados de localidades do IBGE:
+
+```bash
+# Sincronizar todas as localidades (regiões, estados e municípios)
+python manage.py sync_ibge_localidades
+
+# Sincronizar apenas regiões
+python manage.py sync_ibge_localidades --apenas-regioes
+
+# Sincronizar apenas estados
+python manage.py sync_ibge_localidades --apenas-estados
+
+# Sincronizar apenas municípios
+python manage.py sync_ibge_localidades --apenas-municipios
+```
+
+### Uso Programático
+
+```python
+from legislative_monitor.services.ibge_api import IBGELocalizacoesService
+from legislative_monitor.models import Regiao, Estado, Municipio
+
+# API do IBGE
+api = IBGELocalizacoesService()
+
+# Listar regiões
+regioes = api.listar_regioes()
+
+# Listar estados
+estados = api.listar_estados()
+
+# Listar municípios de um estado
+municipios_sp = api.listar_municipios_por_estado(35)  # São Paulo
+
+# Consultar modelos
+regiao_sudeste = Regiao.objects.get(sigla='SE')
+estado_sp = Estado.objects.get(sigla='SP')
+capital_sp = Municipio.objects.get(estado=estado_sp, is_capital=True)
+
+print(f"{capital_sp.nome} é a capital de {estado_sp.nome}")
+```
+
+**Características dos Modelos:**
+
+- Constraint único garante que cada estado tem apenas uma capital
+- Relacionamentos: `Regiao` → `Estado` → `Municipio`
+- IDs são os códigos oficiais do IBGE
+- Sincronização automática via comando de management
+
 ## Funcionalidades de IA
 
 Para utilizar as funcionalidades de IA, configure a chave da OpenAI no arquivo `.env`:

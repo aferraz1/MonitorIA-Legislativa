@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Deputado, Proposicao, Votacao, VotoDeputado, Discurso
+from .models import Deputado, Proposicao, Votacao, VotoDeputado, Discurso, Regiao, Estado, Municipio
 
 
 @admin.register(Deputado)
@@ -43,4 +43,27 @@ class DiscursoAdmin(admin.ModelAdmin):
     search_fields = ['deputado__nome', 'transcricao', 'sumario']
     date_hierarchy = 'data'
     ordering = ['-data']
+
+
+@admin.register(Regiao)
+class RegiaoAdmin(admin.ModelAdmin):
+    list_display = ['id', 'nome', 'sigla']
+    search_fields = ['nome', 'sigla']
+    ordering = ['id']
+
+
+@admin.register(Estado)
+class EstadoAdmin(admin.ModelAdmin):
+    list_display = ['id', 'nome', 'sigla', 'regiao']
+    list_filter = ['regiao']
+    search_fields = ['nome', 'sigla']
+    ordering = ['nome']
+
+
+@admin.register(Municipio)
+class MunicipioAdmin(admin.ModelAdmin):
+    list_display = ['id', 'nome', 'estado', 'is_capital']
+    list_filter = ['estado', 'is_capital']
+    search_fields = ['nome']
+    ordering = ['nome']
 

@@ -166,3 +166,71 @@ class Discurso(models.Model):
     def __str__(self):
         return f"Discurso de {self.deputado.nome} em {self.data.strftime('%d/%m/%Y')}"
 
+
+class Regiao(models.Model):
+    """Modelo para representar uma região brasileira (dados do IBGE)"""
+    id = models.PositiveIntegerField(primary_key=True, help_text="Código do IBGE da Região")
+    sigla = models.CharField(max_length=2, unique=True, help_text="Sigla da Região")
+    nome = models.CharField(max_length=100, help_text="Nome da Região")
+    
+    # Metadados
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Região"
+        verbose_name_plural = "Regiões"
+        ordering = ['id']
+    
+    def __str__(self):
+        return f"{self.nome} ({self.sigla})"
+
+
+class Estado(models.Model):
+    """Modelo para representar um estado brasileiro (dados do IBGE)"""
+    id = models.PositiveIntegerField(primary_key=True, help_text="Código do IBGE do Estado")
+    sigla = models.CharField(max_length=2, unique=True, help_text="Sigla do Estado")
+    nome = models.CharField(max_length=100, help_text="Nome do Estado")
+    regiao = models.ForeignKey(Regiao, on_delete=models.PROTECT, related_name='estados', help_text="Região do Estado")
+    
+    # Metadados
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Estado"
+        verbose_name_plural = "Estados"
+        ordering = ['nome']
+    
+    def __str__(self):
+        return f"{self.nome} ({self.sigla})"
+
+
+class Municipio(models.Model):
+    """Modelo para representar um município brasileiro (dados do IBGE)"""
+    id = models.PositiveIntegerField(primary_key=True, help_text="Código do IBGE do Município")
+    nome = models.CharField(max_length=100, help_text="Nome do Município")
+    estado = models.ForeignKey(Estado, on_delete=models.PROTECT, related_name='municipios', help_text="Estado do Município")
+    is_capital = models.BooleanField(default=False, help_text="Indica se o município é a capital do Estado")
+    
+    # Metadados
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Município"
+        verbose_name_plural = "Municípios"
+        ordering = ['nome']
+        # Garantir que cada Estado tem apenas uma capital
+        constraints = [
+            models.UniqueConstraint(
+                fields=['estado'],
+                condition=models.Q(is_capital=True),
+                name='unique_capital_per_state'
+            )
+        ]
+    
+    def __str__(self):
+        capital_marker = " (Capital)" if self.is_capital else ""
+        return f"{self.nome}/{self.estado.sigla}{capital_marker}"
+
