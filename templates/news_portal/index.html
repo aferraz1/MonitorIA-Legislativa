@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Portal de Notícias - MonitorIA Legislativa{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="jumbotron bg-light p-5 rounded-3 mb-4">
+        <h1 class="display-4">MonitorIA Legislativa</h1>
+        <p class="lead">Acompanhe o processo legislativo brasileiro com análise inteligente e dados em tempo real</p>
+        <hr class="my-4">
+        <p>Sistema completo de monitoramento legislativo com inteligência artificial</p>
+    </div>
+
+    <!-- Featured News -->
+    {% if noticias_destaque %}
+    <section class="mb-5">
+        <h2 class="mb-4">Notícias em Destaque</h2>
+        <div class="row">
+            {% for noticia in noticias_destaque %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    {% if noticia.imagem_destaque %}
+                    <img src="{{ noticia.imagem_destaque.url }}" class="card-img-top" alt="{{ noticia.titulo }}">
+                    {% else %}
+                    <div class="card-img-top bg-primary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class="bi bi-newspaper" style="font-size: 4rem;"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <span class="badge bg-{{ noticia.categoria.cor|default:'primary' }} mb-2">
+                            {{ noticia.categoria.nome }}
+                        </span>
+                        <h5 class="card-title">{{ noticia.titulo }}</h5>
+                        <p class="card-text text-muted">{{ noticia.resumo|truncatewords:20 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar"></i> {{ noticia.data_publicacao|date:"d/m/Y" }}
+                            </small>
+                            <small class="text-muted">
+                                <i class="bi bi-eye"></i> {{ noticia.visualizacoes }}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a href="{% url 'news_portal:noticia_detail' noticia.slug %}" class="btn btn-primary btn-sm">
+                            Ler mais <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Recent News -->
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Notícias Recentes</h2>
+            <a href="{% url 'news_portal:noticias_list' %}" class="btn btn-outline-primary">
+                Ver todas <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        
+        <div class="row">
+            {% for noticia in noticias_recentes %}
+            <div class="col-md-6 mb-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <span class="badge bg-secondary mb-2">{{ noticia.categoria.nome }}</span>
+                        <h5 class="card-title">
+                            <a href="{% url 'news_portal:noticia_detail' noticia.slug %}" class="text-decoration-none text-dark">
+                                {{ noticia.titulo }}
+                            </a>
+                        </h5>
+                        <p class="card-text text-muted">{{ noticia.resumo|truncatewords:15 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-person"></i> {{ noticia.autor.username|default:"Sistema" }}
+                            </small>
+                            <small class="text-muted">
+                                {{ noticia.data_publicacao|date:"d/m/Y H:i" }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Nenhuma notícia publicada ainda.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Categories -->
+    {% if categorias %}
+    <section class="mb-5">
+        <h2 class="mb-4">Categorias</h2>
+        <div class="row">
+            {% for categoria in categorias %}
+            <div class="col-md-3 col-sm-6 mb-3">
+                <a href="{% url 'news_portal:categoria' categoria.slug %}" class="text-decoration-none">
+                    <div class="card text-center shadow-sm">
+                        <div class="card-body">
+                            <i class="bi bi-folder2-open" style="font-size: 2rem; color: {{ categoria.cor|default:'#007bff' }};"></i>
+                            <h5 class="card-title mt-2">{{ categoria.nome }}</h5>
+                            <p class="card-text text-muted small">{{ categoria.noticias.count }} notícias</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Quick Access -->
+    <section class="mb-5">
+        <h2 class="mb-4">Acesso Rápido</h2>
+        <div class="row">
+            <div class="col-md-3 col-sm-6 mb-3">
+                <a href="{% url 'legislative_monitor:proposicoes_list' %}" class="text-decoration-none">
+                    <div class="card text-white bg-primary shadow">
+                        <div class="card-body text-center">
+                            <i class="bi bi-file-text" style="font-size: 3rem;"></i>
+                            <h5 class="card-title mt-2">Proposições</h5>
+                            <p class="card-text">Acompanhe as proposições legislativas</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <a href="{% url 'legislative_monitor:deputados_list' %}" class="text-decoration-none">
+                    <div class="card text-white bg-success shadow">
+                        <div class="card-body text-center">
+                            <i class="bi bi-people" style="font-size: 3rem;"></i>
+                            <h5 class="card-title mt-2">Deputados</h5>
+                            <p class="card-text">Perfis parlamentares completos</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <a href="{% url 'parliamentary_dashboard:index' %}" class="text-decoration-none">
+                    <div class="card text-white bg-info shadow">
+                        <div class="card-body text-center">
+                            <i class="bi bi-bar-chart" style="font-size: 3rem;"></i>
+                            <h5 class="card-title mt-2">Dashboard</h5>
+                            <p class="card-text">Análises e estatísticas</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <a href="{% url 'ai_analysis:busca_semantica' %}" class="text-decoration-none">
+                    <div class="card text-white bg-warning shadow">
+                        <div class="card-body text-center">
+                            <i class="bi bi-search" style="font-size: 3rem;"></i>
+                            <h5 class="card-title mt-2">Busca IA</h5>
+                            <p class="card-text">Busca semântica inteligente</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

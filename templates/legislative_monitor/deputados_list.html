@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Deputados - MonitorIA Legislativa{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Deputados Federais</h1>
+    
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Partido</label>
+                    <select name="partido" class="form-select filter-select">
+                        <option value="">Todos</option>
+                        {% for partido in partidos %}
+                        <option value="{{ partido }}">{{ partido }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">UF</label>
+                    <select name="uf" class="form-select filter-select">
+                        <option value="">Todos</option>
+                        {% for uf in ufs %}
+                        <option value="{{ uf }}">{{ uf }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary" style="margin-top: 32px;">
+                        <i class="bi bi-funnel"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Deputies List -->
+    <div class="row">
+        {% for deputado in deputados %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    {% if deputado.url_foto %}
+                    <img src="{{ deputado.url_foto }}" alt="{{ deputado.nome }}" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">
+                    {% else %}
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px;">
+                        <i class="bi bi-person" style="font-size: 3rem;"></i>
+                    </div>
+                    {% endif %}
+                    <h5 class="card-title">{{ deputado.nome }}</h5>
+                    <p class="card-text">
+                        <span class="badge bg-primary">{{ deputado.sigla_partido }}</span>
+                        <span class="badge bg-secondary">{{ deputado.uf_representacao }}</span>
+                    </p>
+                    <p class="card-text text-muted small">{{ deputado.situacao }}</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'legislative_monitor:deputado_detail' deputado.id_deputado %}" class="btn btn-outline-primary btn-sm w-100">
+                        Ver Perfil <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Nenhum deputado encontrado.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if deputados.has_other_pages %}
+    <nav>
+        <ul class="pagination justify-content-center">
+            {% if deputados.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ deputados.previous_page_number }}">Anterior</a>
+            </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">{{ deputados.number }}</span>
+            </li>
+            
+            {% if deputados.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ deputados.next_page_number }}">Próxima</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

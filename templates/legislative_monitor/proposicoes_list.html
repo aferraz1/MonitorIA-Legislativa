@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Proposições - MonitorIA Legislativa{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Proposições Legislativas</h1>
+    
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Tipo</label>
+                    <select name="tipo" class="form-select filter-select">
+                        <option value="">Todos</option>
+                        {% for value, label in tipos %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Situação</label>
+                    <select name="situacao" class="form-select filter-select">
+                        <option value="">Todas</option>
+                        {% for value, label in situacoes %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Ano</label>
+                    <input type="number" name="ano" class="form-control" placeholder="Ex: 2024">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary" style="margin-top: 32px;">
+                        <i class="bi bi-funnel"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Propositions List -->
+    <div class="row">
+        {% for proposicao in proposicoes %}
+        <div class="col-12 mb-3">
+            <div class="card proposicao-card {{ proposicao.situacao|lower }}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="card-title">
+                                <a href="{% url 'legislative_monitor:proposicao_detail' proposicao.id_proposicao %}" class="text-decoration-none">
+                                    {{ proposicao.tipo }} {{ proposicao.numero }}/{{ proposicao.ano }}
+                                </a>
+                            </h5>
+                            <p class="card-text">{{ proposicao.ementa|truncatewords:50 }}</p>
+                        </div>
+                        <span class="badge bg-{{ proposicao.situacao|lower }}">
+                            {{ proposicao.get_situacao_display }}
+                        </span>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar"></i> {{ proposicao.data_apresentacao|date:"d/m/Y" }}
+                            {% if proposicao.autor %}
+                            | <i class="bi bi-person"></i> {{ proposicao.autor.nome }}
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Nenhuma proposição encontrada.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if proposicoes.has_other_pages %}
+    <nav>
+        <ul class="pagination justify-content-center">
+            {% if proposicoes.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ proposicoes.previous_page_number }}">Anterior</a>
+            </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">{{ proposicoes.number }}</span>
+            </li>
+            
+            {% if proposicoes.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ proposicoes.next_page_number }}">Próxima</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

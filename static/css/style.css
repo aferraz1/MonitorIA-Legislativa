@@ -1,0 +1,131 @@
+/* Custom styles for MonitorIA Legislativa */
+
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #0dcaf0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+}
+
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.jumbotron {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.35rem 0.65rem;
+}
+
+footer {
+    margin-top: auto;
+}
+
+/* Propositions cards */
+.proposicao-card {
+    border-left: 4px solid var(--primary-color);
+}
+
+.proposicao-card.aprovada {
+    border-left-color: var(--success-color);
+}
+
+.proposicao-card.rejeitada {
+    border-left-color: var(--danger-color);
+}
+
+.proposicao-card.em-tramitacao {
+    border-left-color: var(--warning-color);
+}
+
+/* Dashboard charts */
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin-bottom: 2rem;
+}
+
+/* Loading spinner */
+.spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* Responsive tables */
+.table-responsive {
+    overflow-x: auto;
+}
+
+/* Search bar */
+.search-bar {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Task status badges */
+.status-pendente {
+    background-color: var(--secondary-color);
+}
+
+.status-em-andamento {
+    background-color: var(--info-color);
+}
+
+.status-concluida {
+    background-color: var(--success-color);
+}
+
+.status-cancelada {
+    background-color: var(--danger-color);
+}
+
+/* Priority indicators */
+.prioridade-baixa {
+    border-left: 3px solid #28a745;
+}
+
+.prioridade-media {
+    border-left: 3px solid #ffc107;
+}
+
+.prioridade-alta {
+    border-left: 3px solid #fd7e14;
+}
+
+.prioridade-urgente {
+    border-left: 3px solid #dc3545;
+}
