@@ -1,29 +1,48 @@
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
+from django.db import models
 from .models import Deputado, Proposicao, Votacao, Discurso, TipoProposicao
 
 
 def listar_deputados(request):
     """Lista todos os deputados"""
-    deputados = Deputado.objects.all()
+    from .models import Partido
+    
+    deputados = Deputado.objects.select_related('sigla_partido', 'uf_representacao', 'sexo').all()
     
     # Filtros
-    partido = request.GET.get('partido')
-    uf = request.GET.get('uf')
+    partido_sigla = request.GET.get('partido')
+    uf_sigla = request.GET.get('uf')
+    sexo_sigla = request.GET.get('sexo')
+    busca = request.GET.get('q')
     
-    if partido:
-        deputados = deputados.filter(sigla_partido=partido)
-    if uf:
-        deputados = deputados.filter(uf_representacao=uf)
+    if partido_sigla:
+        deputados = deputados.filter(sigla_partido__sigla=partido_sigla)
+    if uf_sigla:
+        deputados = deputados.filter(uf_representacao__sigla=uf_sigla)
+    if sexo_sigla:
+        deputados = deputados.filter(sexo__sigla=sexo_sigla)
+    if busca:
+        deputados = deputados.filter(
+            models.Q(nome__icontains=busca) |
+            models.Q(nome_civil__icontains=busca)
+        )
     
     paginator = Paginator(deputados, 20)
     page = request.GET.get('page')
     deputados_page = paginator.get_page(page)
     
+    # Obter listas para filtros
+    partidos = Partido.objects.all().order_by('sigla')
+    from .models import Estado, Sexo
+    ufs = Estado.objects.all().order_by('sigla')
+    sexos = Sexo.objects.all().order_by('sigla')
+    
     context = {
         'deputados': deputados_page,
-        'partidos': Deputado.objects.values_list('sigla_partido', flat=True).distinct(),
-        'ufs': Deputado.objects.values_list('uf_representacao', flat=True).distinct(),
+        'partidos': partidos,
+        'ufs': ufs,
+        'sexos': sexos,
     }
     return render(request, 'legislative_monitor/deputados_list.html', context)
 
@@ -200,3 +219,84 @@ class TipoProposicaoDetailView(DetailView):
         # context['total_proposicoes'] = self.object.proposicoes.count()
         
         return context
+
+
+
+def listar_partidos(request):
+    """Lista todos os partidos"""
+    from .models import Partido
+    from django.db.models import Count
+    
+    partidos = Partido.objects.annotate(
+        total_deputados=Count('deputados')
+    ).order_by('-total_deputados')
+    
+    # Filtros
+    situacao = request.GET.get('situacao')
+    busca = request.GET.get('q')
+    
+    if situacao:
+        partidos = partidos.filter(status_situacao=situacao)
+    if busca:
+        partidos = partidos.filter(
+            models.Q(sigla__icontains=busca) | 
+            models.Q(nome__icontains=busca)
+        )
+    
+    # Paginação
+    paginator = Paginator(partidos, 20)
+    page = request.GET.get('page')
+    partidos_page = paginator.get_page(page)
+    
+    # Estatísticas
+    total_partidos = Partido.objects.count()
+    partidos_ativos = Partido.objects.filter(status_situacao='Ativo').count()
+    
+    context = {
+        'partidos': partidos_page,
+        'total_partidos': total_partidos,
+        'partidos_ativos': partidos_ativos,
+        'situacoes': Partido.objects.values_list('status_situacao', flat=True).distinct(),
+    }
+    return render(request, 'legislative_monitor/partidos_list.html', context)
+
+
+def detalhe_partido(request, sigla):
+    """Exibe detalhes de um partido"""
+    from .models import Partido
+    from django.db.models import Count, Q
+    
+    partido = get_object_or_404(Partido, sigla=sigla)
+    
+    # Deputados do partido
+    deputados = partido.deputados.select_related(
+        'uf_representacao', 'sexo'
+    ).all()
+    
+    # Proposições dos deputados do partido
+    proposicoes = Proposicao.objects.filter(
+        autor__sigla_partido=partido
+    ).select_related('tipo', 'autor')[:10]
+    
+    # Estatísticas
+    total_deputados = deputados.count()
+    
+    # Distribuição por UF
+    deputados_por_uf = deputados.values('uf_representacao__sigla').annotate(
+        total=Count('id')
+    ).order_by('-total')[:10]
+    
+    # Distribuição por sexo
+    deputados_por_sexo = deputados.values('sexo__nome').annotate(
+        total=Count('id')
+    ).order_by('-total')
+    
+    context = {
+        'partido': partido,
+        'deputados': deputados[:20],  # Primeiros 20 para exibição
+        'total_deputados': total_deputados,
+        'proposicoes': proposicoes,
+        'deputados_por_uf': deputados_por_uf,
+        'deputados_por_sexo': deputados_por_sexo,
+    }
+    return render(request, 'legislative_monitor/partido_detail.html', context)

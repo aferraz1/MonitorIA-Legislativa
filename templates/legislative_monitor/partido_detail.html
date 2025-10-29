@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ partido.sigla }} - {{ partido.nome }} - MonitorIA Legislativa{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Cabeçalho -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'legislative_monitor:partidos_list' %}">Partidos</a></li>
+                    <li class="breadcrumb-item active">{{ partido.sigla }}</li>
+                </ol>
+            </nav>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">
+                        <i class="bi bi-flag-fill"></i> {{ partido.sigla }}
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <h4 class="card-title">{{ partido.nome }}</h4>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h5>Informações Básicas</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <th width="40%">Sigla:</th>
+                                    <td>{{ partido.sigla }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Nome:</th>
+                                    <td>{{ partido.nome }}</td>
+                                </tr>
+                                <tr>
+                                    <th>ID:</th>
+                                    <td>{{ partido.id_partido }}</td>
+                                </tr>
+                                {% if partido.numero_eleitoral %}
+                                <tr>
+                                    <th>Número Eleitoral:</th>
+                                    <td>{{ partido.numero_eleitoral }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <th>Situação:</th>
+                                    <td>
+                                        <span class="badge {% if partido.status_situacao == 'Ativo' %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {{ partido.status_situacao|default:"N/D" }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5>Status Atual</h5>
+                            <table class="table table-sm">
+                                {% if partido.status_data %}
+                                <tr>
+                                    <th width="40%">Última Atualização:</th>
+                                    <td>{{ partido.status_data|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if partido.status_total_membros %}
+                                <tr>
+                                    <th>Total de Membros:</th>
+                                    <td><strong>{{ partido.status_total_membros }}</strong></td>
+                                </tr>
+                                {% endif %}
+                                {% if partido.status_total_posse %}
+                                <tr>
+                                    <th>Total em Posse:</th>
+                                    <td>{{ partido.status_total_posse }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if partido.status_id_legislatura %}
+                                <tr>
+                                    <th>Legislatura:</th>
+                                    <td>{{ partido.status_id_legislatura }}ª</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                            
+                            {% if partido.url_website or partido.url_facebook %}
+                            <h5 class="mt-3">Links</h5>
+                            <div class="d-flex gap-2">
+                                {% if partido.url_website %}
+                                <a href="{{ partido.url_website }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-globe"></i> Website
+                                </a>
+                                {% endif %}
+                                {% if partido.url_facebook %}
+                                <a href="{{ partido.url_facebook }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-facebook"></i> Facebook
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Estatísticas -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h4><i class="bi bi-bar-chart-fill"></i> Estatísticas</h4>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Deputados</h5>
+                            <h2 class="text-primary">{{ total_deputados }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Proposições</h5>
+                            <h2 class="text-success">{{ proposicoes|length }}</h2>
+                            <small class="text-muted">(últimas 10)</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">UFs Representadas</h5>
+                            <h2 class="text-info">{{ deputados_por_uf|length }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Distribuição por UF -->
+            {% if deputados_por_uf %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-geo-alt-fill"></i> Distribuição por UF (Top 10)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for item in deputados_por_uf %}
+                        <div class="col-md-6 mb-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><strong>{{ item.uf_representacao__sigla|default:"N/D" }}</strong></span>
+                                <span class="badge bg-primary">{{ item.total }} deputado{{ item.total|pluralize }}</span>
+                            </div>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {% widthratio item.total total_deputados 100 %}%">
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Distribuição por Sexo -->
+            {% if deputados_por_sexo %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-gender-ambiguous"></i> Distribuição por Sexo</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for item in deputados_por_sexo %}
+                        <div class="col-md-6 mb-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><strong>{{ item.sexo__nome|default:"Não informado" }}</strong></span>
+                                <span class="badge bg-info">{{ item.total }} deputado{{ item.total|pluralize }}</span>
+                            </div>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-info" role="progressbar" 
+                                     style="width: {% widthratio item.total total_deputados 100 %}%">
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Deputados do Partido -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-people-fill"></i> Deputados do {{ partido.sigla }}</h5>
+                </div>
+                <div class="card-body">
+                    {% if deputados %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>UF</th>
+                                    <th>Sexo</th>
+                                    <th>Situação</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for deputado in deputados %}
+                                <tr>
+                                    <td>{{ deputado.nome }}</td>
+                                    <td>{{ deputado.uf_representacao.sigla|default:"N/D" }}</td>
+                                    <td>{{ deputado.sexo.sigla|default:"N/D" }}</td>
+                                    <td>{{ deputado.situacao }}</td>
+                                    <td>
+                                        <a href="{% url 'legislative_monitor:deputado_detail' deputado.id_deputado %}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Ver
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if total_deputados > 20 %}
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-info-circle"></i> Mostrando 20 de {{ total_deputados }} deputados.
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <p class="text-muted">Nenhum deputado cadastrado para este partido.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Proposições Recentes -->
+            {% if proposicoes %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-file-text-fill"></i> Proposições Recentes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Número/Ano</th>
+                                    <th>Autor</th>
+                                    <th>Data</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for prop in proposicoes %}
+                                <tr>
+                                    <td>{{ prop.tipo.sigla }}</td>
+                                    <td>{{ prop.numero }}/{{ prop.ano }}</td>
+                                    <td>{{ prop.autor.nome }}</td>
+                                    <td>{{ prop.data_apresentacao|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'legislative_monitor:proposicao_detail' prop.id_proposicao %}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Ver
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

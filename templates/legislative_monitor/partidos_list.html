@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Partidos Políticos - MonitorIA Legislativa{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="mb-3">
+                <i class="bi bi-flag-fill"></i> Partidos Políticos
+            </h1>
+            
+            <!-- Estatísticas -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Total de Partidos</h5>
+                            <h2 class="mb-0">{{ total_partidos }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Partidos Ativos</h5>
+                            <h2 class="mb-0">{{ partidos_ativos }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filtros e Busca -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-6">
+                            <label for="busca" class="form-label">Buscar</label>
+                            <input type="text" class="form-control" id="busca" name="q" 
+                                   placeholder="Sigla ou nome do partido..." 
+                                   value="{{ request.GET.q }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="situacao" class="form-label">Situação</label>
+                            <select class="form-select" id="situacao" name="situacao">
+                                <option value="">Todas</option>
+                                {% for sit in situacoes %}
+                                    <option value="{{ sit }}" {% if request.GET.situacao == sit %}selected{% endif %}>
+                                        {{ sit }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Filtrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Lista de Partidos -->
+            <div class="row">
+                {% for partido in partidos %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0">
+                                    <a href="{% url 'legislative_monitor:partido_detail' partido.sigla %}" 
+                                       class="text-decoration-none">
+                                        {{ partido.sigla }}
+                                    </a>
+                                </h5>
+                                <span class="badge {% if partido.status_situacao == 'Ativo' %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ partido.status_situacao|default:"N/D" }}
+                                </span>
+                            </div>
+                            <h6 class="card-subtitle mb-3 text-muted">{{ partido.nome }}</h6>
+                            
+                            <div class="mb-2">
+                                <i class="bi bi-people-fill text-primary"></i>
+                                <strong>{{ partido.total_deputados }}</strong> deputado{{ partido.total_deputados|pluralize }}
+                            </div>
+                            
+                            {% if partido.status_total_membros %}
+                            <div class="mb-2">
+                                <i class="bi bi-person-badge text-info"></i>
+                                <small class="text-muted">{{ partido.status_total_membros }} membros totais</small>
+                            </div>
+                            {% endif %}
+                            
+                            {% if partido.numero_eleitoral %}
+                            <div class="mb-2">
+                                <i class="bi bi-hash text-secondary"></i>
+                                <small class="text-muted">Nº Eleitoral: {{ partido.numero_eleitoral }}</small>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="mt-3">
+                                <a href="{% url 'legislative_monitor:partido_detail' partido.sigla %}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Ver Detalhes
+                                </a>
+                                {% if partido.url_website %}
+                                <a href="{{ partido.url_website }}" target="_blank" 
+                                   class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-globe"></i> Site
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Nenhum partido encontrado.
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Paginação -->
+            {% if partidos.has_other_pages %}
+            <nav aria-label="Navegação de páginas">
+                <ul class="pagination justify-content-center">
+                    {% if partidos.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ partidos.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.situacao %}&situacao={{ request.GET.situacao }}{% endif %}">
+                            Anterior
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Página {{ partidos.number }} de {{ partidos.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if partidos.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ partidos.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.situacao %}&situacao={{ request.GET.situacao }}{% endif %}">
+                            Próxima
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

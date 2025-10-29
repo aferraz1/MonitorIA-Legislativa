@@ -3,33 +3,54 @@
 {% block title %}Deputados - MonitorIA Legislativa{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1 class="mb-4">Deputados Federais</h1>
+<div class="container mt-4">
+    <h1 class="mb-4"><i class="bi bi-people-fill"></i> Deputados Federais</h1>
     
-    <!-- Filters -->
+    <!-- Filtros e Busca -->
     <div class="card mb-4">
         <div class="card-body">
             <form method="get" class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">Partido</label>
-                    <select name="partido" class="form-select filter-select">
+                <div class="col-md-3">
+                    <label for="busca" class="form-label">Buscar</label>
+                    <input type="text" class="form-control" id="busca" name="q" 
+                           placeholder="Nome do deputado..." 
+                           value="{{ request.GET.q }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="partido" class="form-label">Partido</label>
+                    <select name="partido" id="partido" class="form-select">
                         <option value="">Todos</option>
                         {% for partido in partidos %}
-                        <option value="{{ partido }}">{{ partido }}</option>
+                        <option value="{{ partido.sigla }}" {% if request.GET.partido == partido.sigla %}selected{% endif %}>
+                            {{ partido.sigla }} - {{ partido.nome }}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">UF</label>
-                    <select name="uf" class="form-select filter-select">
-                        <option value="">Todos</option>
+                <div class="col-md-2">
+                    <label for="uf" class="form-label">UF</label>
+                    <select name="uf" id="uf" class="form-select">
+                        <option value="">Todas</option>
                         {% for uf in ufs %}
-                        <option value="{{ uf }}">{{ uf }}</option>
+                        <option value="{{ uf.sigla }}" {% if request.GET.uf == uf.sigla %}selected{% endif %}>
+                            {{ uf.sigla }}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-primary" style="margin-top: 32px;">
+                <div class="col-md-2">
+                    <label for="sexo" class="form-label">Sexo</label>
+                    <select name="sexo" id="sexo" class="form-select">
+                        <option value="">Todos</option>
+                        {% for sexo in sexos %}
+                        <option value="{{ sexo.sigla }}" {% if request.GET.sexo == sexo.sigla %}selected{% endif %}>
+                            {{ sexo.nome }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
                         <i class="bi bi-funnel"></i> Filtrar
                     </button>
                 </div>
@@ -37,28 +58,46 @@
         </div>
     </div>
     
-    <!-- Deputies List -->
+    <!-- Lista de Deputados -->
     <div class="row">
         {% for deputado in deputados %}
         <div class="col-md-6 col-lg-4 mb-4">
             <div class="card h-100 shadow-sm">
                 <div class="card-body text-center">
                     {% if deputado.url_foto %}
-                    <img src="{{ deputado.url_foto }}" alt="{{ deputado.nome }}" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">
+                    <img src="{{ deputado.url_foto }}" alt="{{ deputado.nome }}" 
+                         class="rounded-circle mb-3" 
+                         style="width: 100px; height: 100px; object-fit: cover;">
                     {% else %}
-                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px;">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" 
+                         style="width: 100px; height: 100px;">
                         <i class="bi bi-person" style="font-size: 3rem;"></i>
                     </div>
                     {% endif %}
                     <h5 class="card-title">{{ deputado.nome }}</h5>
                     <p class="card-text">
-                        <span class="badge bg-primary">{{ deputado.sigla_partido }}</span>
-                        <span class="badge bg-secondary">{{ deputado.uf_representacao }}</span>
+                        {% if deputado.sigla_partido %}
+                        <a href="{% url 'legislative_monitor:partido_detail' deputado.sigla_partido.sigla %}" 
+                           class="badge bg-primary text-decoration-none">
+                            {{ deputado.sigla_partido.sigla }}
+                        </a>
+                        {% else %}
+                        <span class="badge bg-secondary">S/P</span>
+                        {% endif %}
+                        
+                        {% if deputado.uf_representacao %}
+                        <span class="badge bg-secondary">{{ deputado.uf_representacao.sigla }}</span>
+                        {% endif %}
+                        
+                        {% if deputado.sexo %}
+                        <span class="badge bg-info">{{ deputado.sexo.sigla }}</span>
+                        {% endif %}
                     </p>
                     <p class="card-text text-muted small">{{ deputado.situacao }}</p>
                 </div>
                 <div class="card-footer bg-transparent">
-                    <a href="{% url 'legislative_monitor:deputado_detail' deputado.id_deputado %}" class="btn btn-outline-primary btn-sm w-100">
+                    <a href="{% url 'legislative_monitor:deputado_detail' deputado.id_deputado %}" 
+                       class="btn btn-outline-primary btn-sm w-100">
                         Ver Perfil <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
@@ -73,23 +112,29 @@
         {% endfor %}
     </div>
     
-    <!-- Pagination -->
+    <!-- Paginação -->
     {% if deputados.has_other_pages %}
-    <nav>
+    <nav aria-label="Navegação de páginas">
         <ul class="pagination justify-content-center">
             {% if deputados.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ deputados.previous_page_number }}">Anterior</a>
+                <a class="page-link" href="?page={{ deputados.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.partido %}&partido={{ request.GET.partido }}{% endif %}{% if request.GET.uf %}&uf={{ request.GET.uf }}{% endif %}{% if request.GET.sexo %}&sexo={{ request.GET.sexo }}{% endif %}">
+                    Anterior
+                </a>
             </li>
             {% endif %}
             
             <li class="page-item active">
-                <span class="page-link">{{ deputados.number }}</span>
+                <span class="page-link">
+                    Página {{ deputados.number }} de {{ deputados.paginator.num_pages }}
+                </span>
             </li>
             
             {% if deputados.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ deputados.next_page_number }}">Próxima</a>
+                <a class="page-link" href="?page={{ deputados.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.partido %}&partido={{ request.GET.partido }}{% endif %}{% if request.GET.uf %}&uf={{ request.GET.uf }}{% endif %}{% if request.GET.sexo %}&sexo={{ request.GET.sexo }}{% endif %}">
+                    Próxima
+                </a>
             </li>
             {% endif %}
         </ul>

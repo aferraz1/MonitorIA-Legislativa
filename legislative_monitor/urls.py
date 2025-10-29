@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from .views import TipoProposicaoListView, TipoProposicaoDetailView
+from .views_graficos import graficos_partidos
 
 app_name = 'legislative_monitor'
 
@@ -15,4 +16,11 @@ urlpatterns = [
     # Tipos de Proposição
     path('tipos-proposicao/', TipoProposicaoListView.as_view(), name='tipos_proposicao_list'),
     path('tipos-proposicao/<int:pk>/', TipoProposicaoDetailView.as_view(), name='tipo_proposicao_detail'),
+    
+    # Partidos
+    path('partidos/', views.listar_partidos, name='partidos_list'),
+    path('partidos/<str:sigla>/', views.detalhe_partido, name='partido_detail'),
+    
+    # Gráficos
+    path('graficos/partidos/', graficos_partidos, name='graficos_partidos'),
 ]
