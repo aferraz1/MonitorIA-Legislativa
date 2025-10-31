@@ -1,4 +1,5 @@
 # MonitorIA Legislativa
+
 Portal do Sistema de Análise e Acompanhamento do Processo Legislativo
 
 ## Descrição
@@ -43,6 +44,7 @@ MonitorIA Legislativa é um sistema completo de monitoramento e análise do proc
 ## Stack Tecnológico
 
 ### Backend
+
 - **Django 4.2**: Framework web Python
 - **PostgreSQL**: Banco de dados relacional (com fallback para SQLite em desenvolvimento)
 - **Django REST Framework**: API REST
@@ -51,6 +53,7 @@ MonitorIA Legislativa é um sistema completo de monitoramento e análise do proc
 - **Redis**: Cache e broker para Celery
 
 ### Frontend
+
 - **HTML5**: Estrutura das páginas
 - **CSS3**: Estilização
 - **Bootstrap 5**: Framework CSS responsivo
@@ -61,6 +64,7 @@ MonitorIA Legislativa é um sistema completo de monitoramento e análise do proc
 ## Instalação
 
 ### Pré-requisitos
+
 - Python 3.8 ou superior
 - PostgreSQL (opcional, pode usar SQLite em desenvolvimento)
 - Redis (opcional, para Celery)
@@ -68,49 +72,57 @@ MonitorIA Legislativa é um sistema completo de monitoramento e análise do proc
 ### Passo a Passo
 
 1. Clone o repositório:
+
 ```bash
 git clone https://github.com/aferraz1/MonitorIA-Legislativa.git
 cd MonitorIA-Legislativa
 ```
 
-2. Crie um ambiente virtual:
+1. Crie um ambiente virtual:
+
 ```bash
 python -m venv venv
 source venv/bin/activate  # No Windows: venv\Scripts\activate
 ```
 
-3. Instale as dependências:
+1. Instale as dependências:
+
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Configure as variáveis de ambiente:
+1. Configure as variáveis de ambiente:
+
 ```bash
 cp .env.example .env
 # Edite o arquivo .env com suas configurações
 ```
 
-5. Execute as migrações:
+1. Execute as migrações:
+
 ```bash
 python manage.py migrate
 ```
 
-6. Crie um superusuário:
+1. Crie um superusuário:
+
 ```bash
 python manage.py createsuperuser
 ```
 
-7. Colete arquivos estáticos:
+1. Colete arquivos estáticos:
+
 ```bash
 python manage.py collectstatic --noinput
 ```
 
-8. Inicie o servidor de desenvolvimento:
+1. Inicie o servidor de desenvolvimento:
+
 ```bash
 python manage.py runserver
 ```
 
-9. Acesse o sistema em: http://localhost:8000
+1. Acesse o sistema em: <http://localhost:8000>
 
 ## Configuração
 
@@ -145,8 +157,9 @@ CELERY_RESULT_BACKEND=redis://localhost:6379/0
 ### API da Câmara dos Deputados
 
 O sistema está configurado para consumir a API de Dados Abertos da Câmara dos Deputados:
-- Base URL: https://dadosabertos.camara.leg.br/api/v2
-- Documentação: https://dadosabertos.camara.leg.br/swagger/api.html
+
+- Base URL: <https://dadosabertos.camara.leg.br/api/v2>
+- Documentação: <https://dadosabertos.camara.leg.br/swagger/api.html>
 
 ## Estrutura do Projeto
 
@@ -197,6 +210,7 @@ MonitorIA-Legislativa/
 ### Admin
 
 Acesse `/admin/` com suas credenciais de superusuário para:
+
 - Gerenciar deputados, proposições e votações
 - Criar e editar notícias
 - Gerenciar equipes e tarefas
@@ -206,6 +220,7 @@ Acesse `/admin/` com suas credenciais de superusuário para:
 ### API REST
 
 O sistema utiliza Django REST Framework. Endpoints disponíveis:
+
 - Deputados, proposições, votações (via views)
 - Análises de IA
 - Notícias e categorias
@@ -312,17 +327,20 @@ embedding = ai.gerar_embedding(texto)
 ## Desenvolvimento
 
 ### Executar Testes
+
 ```bash
 python manage.py test
 ```
 
 ### Criar Nova Migração
+
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
 
 ### Iniciar Celery (para tarefas assíncronas)
+
 ```bash
 celery -A monitoria_legislativa worker -l info
 celery -A monitoria_legislativa beat -l info
@@ -350,4 +368,3 @@ Para mais informações, entre em contato através do GitHub.
 - [API Dados Abertos Câmara](https://dadosabertos.camara.leg.br/)
 - [Bootstrap 5](https://getbootstrap.com/)
 - [OpenAI API](https://platform.openai.com/docs/)
-

@@ -11,7 +11,7 @@ class ResumoIA(models.Model):
     principais_pontos = models.JSONField(default=list)
     
     # Metadados
-    modelo_ia = models.CharField(max_length=100, default='gpt-3.5-turbo')
+    modelo_ia = models.CharField(max_length=100, default='gpt-4o-mini')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -47,7 +47,7 @@ class AnaliseImpacto(models.Model):
     impacto_juridico = models.TextField(blank=True)
     
     # Metadados
-    modelo_ia = models.CharField(max_length=100, default='gpt-3.5-turbo')
+    modelo_ia = models.CharField(max_length=100, default='gpt-4o-mini')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -90,7 +90,7 @@ class AnaliseDiscurso(models.Model):
     resumo = models.TextField(blank=True)
     
     # Metadados
-    modelo_ia = models.CharField(max_length=100, default='gpt-3.5-turbo')
+    modelo_ia = models.CharField(max_length=100, default='gpt-4o-mini')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
